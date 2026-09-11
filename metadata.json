@@ -1,0 +1,6 @@
+{
+  "name": "AJT77 — AjayTrades77",
+  "description": "Official platform for AJT77 / AjayTrades77 by Ajay Gadhe. Professional price-action trading education, systematic execution frameworks, and secure Razorpay enrollment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
