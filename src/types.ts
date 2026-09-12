@@ -213,3 +213,79 @@ export interface EmailLog {
   created_at: string;
 }
 
+export interface SiteSectionVisibility {
+  hero: boolean;
+  courses: boolean;
+  journey: boolean;
+  book: boolean;
+  contact: boolean;
+  disclaimerBanner: boolean;
+}
+
+export interface SiteHeroContent {
+  badge: string;
+  titlePrimary: string;
+  titleGradient: string;
+  mentorLine: string;
+  description: string;
+  ctaPrimaryText: string;
+  ctaSecondaryText: string;
+  ctaTertiaryText: string;
+  statMethodology: string;
+  statBasicPriceLabel: string;
+  statProPriceLabel: string;
+  statVerificationLabel: string;
+}
+
+export interface SiteJourneyContent {
+  sectionBadge: string;
+  sectionTitle: string;
+  sectionDescription: string;
+  mentorName: string;
+  mentorTitle: string;
+  mentorRole: string;
+  quote1: string;
+  quote2: string;
+  quote3: string;
+  pillars: Array<{
+    title: string;
+    desc: string;
+  }>;
+  phases: Array<{
+    phase: string;
+    subtitle: string;
+    title: string;
+    description: string;
+    takeaway: string;
+  }>;
+}
+
+export interface SiteLegalContent {
+  disclaimerNoticeTitle: string;
+  disclaimerNoticeText: string;
+  disclaimerNoticeWarning: string;
+  fullDisclaimerHtml: string;
+  termsConditionsHtml: string;
+  privacyPolicyHtml: string;
+}
+
+export interface SiteContent {
+  brandName: string;
+  subBrand: string;
+  founderName: string;
+  logoText: string;
+  logoBadge: string;
+  seoTitle: string;
+  seoDescription: string;
+  supportEmail: string;
+  supportPhone: string;
+  whatsappNumber: string;
+  canonicalUrl: string;
+  sectionVisibility: SiteSectionVisibility;
+  sectionOrder: string[];
+  hero: SiteHeroContent;
+  journey: SiteJourneyContent;
+  legal: SiteLegalContent;
+  updatedAt?: string;
+}
+

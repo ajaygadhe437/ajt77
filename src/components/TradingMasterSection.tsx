@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Bell,
   Loader2,
   ArrowRight,
-  BookOpen,
-  Upload,
-  Maximize2,
-  X,
   CheckCircle2,
   ShieldCheck,
   Check,
@@ -15,8 +11,10 @@ import {
 } from 'lucide-react';
 import { requestApi } from '../lib/api';
 import type { BookRecord } from '../types';
+import { useWebsiteContent } from '../context/WebsiteContentContext';
 
 export const TradingMasterSection: React.FC = () => {
+  const { content } = useWebsiteContent();
   const [book, setBook] = useState<BookRecord | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,11 +22,6 @@ export const TradingMasterSection: React.FC = () => {
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isZoomOpen, setIsZoomOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
-  const [imgError, setImgError] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchBook();
@@ -93,60 +86,13 @@ export const TradingMasterSection: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (.png, .jpg, .jpeg, .webp)');
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadNotice('Processing official cover image...');
-
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const dataUrl = reader.result as string;
-          const res = await requestApi<{ book: BookRecord; cover_url: string }>('/api/book/upload-cover', {
-            method: 'POST',
-            body: JSON.stringify({ dataUrl, fileName: file.name }),
-          });
-
-          if (res?.book) {
-            setBook(res.book);
-            setImgError(false);
-            setUploadNotice('Official book cover updated and saved successfully!');
-            setTimeout(() => setUploadNotice(null), 4000);
-          }
-        } catch (err: any) {
-          alert('Upload failed: ' + (err.message || 'Unknown error'));
-        } finally {
-          setIsUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (err: any) {
-      setIsUploading(false);
-      alert('Failed to read file: ' + err.message);
-    }
-  };
-
-  const coverSrc = book?.cover_image_url || '/trading-master-cover.png';
+  const coverSrc = content.book?.cover_image_url || book?.cover_image_url || '/trading-master-cover.png';
+  const bookTitle = content.book?.title || book?.title || 'AJAY TRADES ICT & SMC TRADING MASTERBOOK';
+  const bookAuthor = content.book?.author || book?.author || 'Ajay Gadhe (AjayTrades77)';
+  const bookDescription = content.book?.description || book?.description || 'Authored by Ajay Gadhe (AjayTrades77), the ICT & SMC Trading Masterbook is a complete and in-depth educational blueprint combining institutional Smart Money Concepts with pure Price Action principles to trade financial markets systematically and with confidence.';
 
   return (
     <section id="trading-master" className="py-24 bg-[#07090e] border-b border-slate-800/80 relative overflow-hidden">
-      {/* Hidden file picker for direct book cover upload */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileUpload}
-        accept="image/*"
-        className="hidden"
-      />
-
       {/* Background ambient lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-sky-500/10 blur-[140px] rounded-full pointer-events-none" />
 
@@ -169,67 +115,13 @@ export const TradingMasterSection: React.FC = () => {
                 className="relative rounded-2xl bg-gradient-to-br from-slate-900 via-[#0d121f] to-slate-950 border border-slate-700/80 p-4 sm:p-6 shadow-2xl shadow-sky-950/60 transition-all duration-300"
               >
                 {/* Official Cover Image */}
-                <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shadow-inner group/img">
-                  {!imgError ? (
-                    <img
-                      src={coverSrc}
-                      alt="AJAY TRADES ICT & SMC TRADING MASTERBOOK by Ajay Gadhe"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-auto object-contain rounded-lg transition-transform duration-300 hover:scale-[1.01]"
-                      onError={() => setImgError(true)}
-                    />
-                  ) : (
-                    /* Clean Fallback Container with Upload Option */
-                    <div className="aspect-[4/3] rounded-lg bg-gradient-to-b from-slate-900 to-[#070b14] border border-slate-700/60 p-6 flex flex-col justify-between text-center relative">
-                      <div className="space-y-1 text-left">
-                        <span className="text-[10px] font-mono tracking-widest uppercase text-sky-400 font-bold block">
-                          OFFICIAL COVER ARTWORK
-                        </span>
-                        <h4 className="text-xl font-bold text-white leading-tight">
-                          ICT & SMC TRADING MASTERBOOK
-                        </h4>
-                        <p className="text-xs text-slate-400">Ajay Trades • Ajay Gadhe</p>
-                      </div>
-
-                      <div className="my-auto py-4">
-                        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center mx-auto text-sky-400 mb-3 shadow-lg shadow-sky-500/10">
-                          <BookOpen className="w-7 h-7" />
-                        </div>
-                        <p className="text-xs text-slate-300 max-w-xs mx-auto">
-                          Official cover file ready to sync. Click below to load your official image.
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                        className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
-                      >
-                        {isUploading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Upload className="w-4 h-4" />
-                        )}
-                        <span>Upload Official Book Cover File</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Hover Actions Overlay */}
-                  {!imgError && (
-                    <div className="absolute bottom-3 right-3 flex items-center space-x-2 opacity-90 hover:opacity-100 transition-opacity">
-                      <button
-                        id="zoom-book-cover-btn"
-                        type="button"
-                        onClick={() => setIsZoomOpen(true)}
-                        className="px-2.5 py-1.5 bg-slate-950/85 hover:bg-slate-900 text-white border border-slate-700/80 rounded-lg text-xs font-mono flex items-center space-x-1.5 backdrop-blur-sm shadow-lg cursor-pointer"
-                        title="View Full Resolution Cover"
-                      >
-                        <Maximize2 className="w-3.5 h-3.5 text-sky-400" />
-                        <span>Inspect Cover</span>
-                      </button>
-                    </div>
-                  )}
+                <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shadow-inner">
+                  <img
+                    src={coverSrc}
+                    alt="AJAY TRADES ICT & SMC TRADING MASTERBOOK by Ajay Gadhe"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-auto object-contain rounded-lg transition-transform duration-300"
+                  />
                 </div>
 
                 {/* Subtitle & Official Authentication Bar */}
@@ -238,23 +130,8 @@ export const TradingMasterSection: React.FC = () => {
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <span className="font-mono text-[11px] text-slate-300">Official AJT77 Publication</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="text-[11px] font-mono text-sky-400 hover:text-sky-300 underline underline-offset-2 flex items-center space-x-1 cursor-pointer"
-                  >
-                    <Upload className="w-3 h-3" />
-                    <span>{isUploading ? 'Updating...' : 'Update Cover'}</span>
-                  </button>
+                  <span className="font-mono text-[11px] text-slate-400">Hardcover Edition</span>
                 </div>
-
-                {uploadNotice && (
-                  <div className="mt-3 p-2.5 bg-emerald-950/80 border border-emerald-500/40 rounded-lg text-[11px] text-emerald-300 flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                    <span>{uploadNotice}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -268,7 +145,7 @@ export const TradingMasterSection: React.FC = () => {
 
             <div className="space-y-2">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                AJAY TRADES ICT & SMC TRADING MASTERBOOK
+                {bookTitle}
               </h2>
               <p className="text-base sm:text-lg font-mono text-sky-400 font-semibold">
                 Beginner to Advanced • Trade • Learn • Earn
@@ -276,7 +153,7 @@ export const TradingMasterSection: React.FC = () => {
             </div>
 
             <p className="text-base text-slate-300 leading-relaxed max-w-2xl">
-              Authored by <strong>Ajay Gadhe (AjayTrades77)</strong>, the <em>ICT & SMC Trading Masterbook</em> is a complete and in-depth educational blueprint combining institutional Smart Money Concepts with pure Price Action principles to trade financial markets systematically and with confidence.
+              {bookDescription}
             </p>
 
             {/* Core Curriculum Highlights from Official Back Cover */}
@@ -329,14 +206,9 @@ export const TradingMasterSection: React.FC = () => {
               id="waitlist-card"
               className="bg-slate-900 border border-slate-700/80 rounded-2xl p-6 sm:p-7 space-y-4 max-w-2xl shadow-xl"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <div className="flex items-center space-x-2">
-                  <Bell className="w-4 h-4 text-sky-400" />
-                  <h4 className="text-base font-bold text-white">Join Early Access Waitlist</h4>
-                </div>
-                <span className="text-xs font-mono text-emerald-400 font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  {book?.waitlist_count ?? 342} Readers Registered
-                </span>
+              <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
+                <Bell className="w-4 h-4 text-sky-400" />
+                <h4 className="text-base font-bold text-white">Join Early Access Waitlist</h4>
               </div>
 
               {registeredSuccess ? (
@@ -417,34 +289,6 @@ export const TradingMasterSection: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Full Resolution Zoom / Inspect Modal */}
-      {isZoomOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative max-w-5xl w-full max-h-[95vh] flex flex-col items-center">
-            <button
-              onClick={() => setIsZoomOpen(false)}
-              className="absolute -top-12 right-0 p-2 text-slate-400 hover:text-white bg-slate-800/80 rounded-full transition-colors cursor-pointer"
-              title="Close"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="overflow-auto max-h-[85vh] rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-2xl">
-              <img
-                src={coverSrc}
-                alt="AJAY TRADES ICT & SMC TRADING MASTERBOOK Full Cover"
-                referrerPolicy="no-referrer"
-                className="w-full h-auto object-contain rounded-lg"
-              />
-            </div>
-
-            <p className="text-xs text-slate-400 font-mono mt-3 text-center">
-              AJAY TRADES ICT & SMC TRADING MASTERBOOK • Official Jacket Wrap (Back, Spine & Front)
-            </p>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

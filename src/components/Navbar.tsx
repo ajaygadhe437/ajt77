@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Menu, X, ArrowRight, Lock } from 'lucide-react';
+import { useWebsiteContent } from '../context/WebsiteContentContext';
 
 interface NavbarProps {
   activeTab?: string;
@@ -18,8 +19,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenEnroll,
   onOpenAdmin,
 }) => {
+  const { content } = useWebsiteContent();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const active = activeTab || currentTab || 'home';
+
+  const brandName = content.brandName || 'AJT77';
+  const subBrand = content.subBrand || 'AjayTrades77';
+  const founderName = content.founderName || 'Ajay Gadhe';
 
   const handleNavClick = (tabId: string) => {
     if (onNavigate) {
@@ -56,13 +62,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-xl text-white tracking-tight font-display">
-                  AJT<span className="text-sky-400">77</span>
+                  {brandName}
                 </span>
                 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/30">
                   Live
                 </span>
               </div>
-              <p className="text-xs text-slate-400 tracking-wide font-medium">AjayTrades77 • Ajay Gadhe</p>
+              <p className="text-xs text-slate-400 tracking-wide font-medium">{subBrand} • {founderName}</p>
             </div>
           </button>
 

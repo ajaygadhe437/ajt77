@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Youtube, Instagram, Linkedin, Twitter, MessageSquare, AlertTriangle } from 'lucide-react';
+import { useWebsiteContent } from '../context/WebsiteContentContext';
 
 interface FooterProps {
   onNavigate: (tab: string) => void;
@@ -7,6 +8,17 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenLegal }) => {
+  const { content } = useWebsiteContent();
+
+  const social = content.social || {
+    youtube: 'https://youtube.com/@ajaytrades77?si=3piKHv2eHqB_A_4S',
+    instagram: 'https://www.instagram.com/ajaytrades_77?stkn=eHVreHA3MDQ4cHNl',
+    linkedin: 'https://www.linkedin.com/in/ajay-gadhe-703066361',
+    twitter: 'https://x.com/AjayTrades77',
+    discord: 'https://discord.gg/ESDzAbxBNZ',
+    telegram: 'https://t.me/ajaytrades77',
+  };
+
   return (
     <footer className="bg-[#05070a] border-t border-slate-800 text-slate-400 text-xs">
       {/* High-visibility Mandatory Trading Risk Disclaimer */}
@@ -19,10 +31,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenLegal }) => {
                 Regulatory Risk Disclosure & Educational Notice:
               </p>
               <p>
-                Trading derivatives, equities, currencies, commodities, and digital assets involves significant financial risk and is not suitable for all investors. Capital loss can equal or exceed deposited funds. All content, technical breakdowns, course curriculums, and setup observations shared across <strong className="text-white">AJT77 / AjayTrades77 / Ajay Gadhe</strong> are provided exclusively for educational and illustrative purposes.
+                {content.footer?.riskNotice || `Trading derivatives, equities, currencies, commodities, and digital assets involves significant financial risk and is not suitable for all investors. Capital loss can equal or exceed deposited funds. All content, technical breakdowns, course curriculums, and setup observations shared across ${content.brandName || 'AJT77'} / ${content.subBrand || 'AjayTrades77'} / ${content.founderName || 'Ajay Gadhe'} are provided exclusively for educational and illustrative purposes.`}
               </p>
               <p>
-                Past performance, verified prop statements, and historical payout certificates are not indicative or guarantees of future results. We do not provide financial advice, SEBI-registered portfolio management, tips, or guaranteed profit schemes. You are solely responsible for your own trading and risk management decisions.
+                {content.footer?.disclaimerExtra || 'Past performance, verified prop statements, and historical payout certificates are not indicative or guarantees of future results. We do not provide financial advice, SEBI-registered portfolio management, tips, or guaranteed profit schemes. You are solely responsible for your own trading and risk management decisions.'}
               </p>
             </div>
           </div>
@@ -40,60 +52,72 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenLegal }) => {
               </div>
               <div>
                 <span className="text-base font-extrabold text-white tracking-tight font-display">
-                  AJT<span className="text-sky-400">77</span>
+                  {content.brandName || 'AJT77'}
                 </span>
-                <p className="text-[11px] text-slate-500 font-mono">AjayTrades77 • Ajay Gadhe</p>
+                <p className="text-[11px] text-slate-500 font-mono">
+                  {content.subBrand || 'AjayTrades77'} • {content.founderName || 'Ajay Gadhe'}
+                </p>
               </div>
             </div>
             <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-              Institutional price action, liquidity dynamics, and systematic market execution. Educational programs powering disciplined, self-sufficient traders.
+              {content.footer?.tagline || 'Institutional price action, liquidity dynamics, and systematic market execution. Educational programs powering disciplined, self-sufficient traders.'}
             </p>
             <div className="flex items-center space-x-3 pt-2 text-slate-400">
-              <a
-                href="https://youtube.com/@ajaytrades77?si=3piKHv2eHqB_A_4S"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-red-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
-                title="YouTube @ajaytrades77"
-              >
-                <Youtube className="w-4 h-4" />
-              </a>
-              <a
-                href="https://www.instagram.com/ajaytrades_77?stkn=eHVreHA3MDQ4cHNl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-pink-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
-                title="Instagram @ajaytrades_77"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/ajay-gadhe-703066361"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-sky-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
-                title="LinkedIn Ajay Gadhe"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a
-                href="https://x.com/AjayTrades77"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
-                title="X @AjayTrades77"
-              >
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a
-                href="https://discord.gg/ESDzAbxBNZ"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-indigo-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
-                title="Discord Server"
-              >
-                <MessageSquare className="w-4 h-4" />
-              </a>
+              {social.youtube && (
+                <a
+                  href={social.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-red-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                  title="YouTube"
+                >
+                  <Youtube className="w-4 h-4" />
+                </a>
+              )}
+              {social.instagram && (
+                <a
+                  href={social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-pink-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                  title="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+              )}
+              {social.linkedin && (
+                <a
+                  href={social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-sky-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                  title="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
+              {social.twitter && (
+                <a
+                  href={social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                  title="X (Twitter)"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+              )}
+              {social.discord && (
+                <a
+                  href={social.discord}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-indigo-400 transition-colors p-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                  title="Discord Community"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -108,7 +132,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenLegal }) => {
               </li>
               <li>
                 <button onClick={() => onNavigate('courses')} className="hover:text-white cursor-pointer">
-                  AJT77 Basic & Pro Courses
+                  {content.brandName || 'AJT77'} Courses
                 </button>
               </li>
               <li>
@@ -158,7 +182,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenLegal }) => {
 
         {/* Bottom copyright */}
         <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
-          <p>© {new Date().getFullYear()} AJT77 / AjayTrades77. All rights reserved. Created by Ajay Gadhe.</p>
+          <p>
+            {content.footer?.copyright || `© ${new Date().getFullYear()} ${content.brandName || 'AJT77'} / ${content.subBrand || 'AjayTrades77'}. All rights reserved. Created by ${content.founderName || 'Ajay Gadhe'}.`}
+          </p>
           <div className="flex items-center space-x-4">
             <span>Canonical: ajt77.com</span>
             <span>Live Mode: Active</span>

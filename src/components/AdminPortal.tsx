@@ -23,7 +23,9 @@ import {
   Upload,
   Mail,
   Send,
+  Globe,
 } from 'lucide-react';
+import { AdminSiteContentManager } from './AdminSiteContentManager';
 import { requestApi, ApiError } from '../lib/api';
 import type {
   OrderRecord,
@@ -43,13 +45,13 @@ interface AdminPortalProps {
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('ajt77_admin_token'));
-  const [adminEmail, setAdminEmail] = useState('ajaygadhe437@gmail.com');
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active Admin Section
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'charts' | 'track' | 'courses' | 'enquiries' | 'messages' | 'book' | 'audit' | 'settings' | 'emails'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'site-content' | 'orders' | 'charts' | 'track' | 'courses' | 'enquiries' | 'messages' | 'book' | 'audit' | 'settings' | 'emails'>('overview');
 
   // Data States
   const [overviewData, setOverviewData] = useState<any>(null);
@@ -308,7 +310,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   SUPER_ADMIN
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Ajay Gadhe (ajaygadhe437@gmail.com)</p>
+              <p className="text-[11px] text-slate-400">Ajay Gadhe • Administrator</p>
             </div>
           </div>
 
@@ -359,9 +361,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   <input
                     type="email"
                     required
+                    autoComplete="off"
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#141b2d] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-sky-500"
+                    placeholder="Enter admin email"
+                    className="w-full px-3.5 py-2.5 bg-[#141b2d] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -370,12 +374,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     placeholder="Enter admin password"
-                    className="w-full px-3.5 py-2.5 bg-[#141b2d] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-[#141b2d] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">Default: AJT77@Admin2025</span>
                 </div>
 
                 {loginError && (
@@ -408,6 +412,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Overview</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('site-content')}
+                className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left cursor-pointer ${
+                  activeTab === 'site-content' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Globe className="w-4 h-4 text-sky-400" />
+                <span className="font-semibold text-white">Site Content (CMS)</span>
               </button>
 
               <button
@@ -543,6 +557,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
 
             {/* Main Section Content */}
             <main className="flex-1 bg-[#090c15] p-6 overflow-y-auto">
+              {/* SITE CONTENT MANAGEMENT TAB */}
+              {activeTab === 'site-content' && (
+                <AdminSiteContentManager />
+              )}
+
               {/* 1. OVERVIEW TAB */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
@@ -1006,7 +1025,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                       <div>
                         <label className="block text-slate-400 mb-1">Total Waitlist Subscribers</label>
                         <p className="text-xl font-extrabold text-white font-mono mt-1">
-                          {overviewData?.metrics?.bookWaitlistCount || 342} Readers Registered
+                          {overviewData?.metrics?.bookWaitlistCount || 0} Registrations
                         </p>
                       </div>
                     </div>
@@ -1131,7 +1150,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 truncate">
-                        Recipient: ajaygadhe437@gmail.com
+                        Recipient: Verified Admin Recipient
                       </p>
                     </div>
 
