@@ -98,10 +98,12 @@ async function startServer() {
       const { course, customerName, customerEmail, customerPhone } = req.body;
 
       // Validation
-      if (!course || (course !== 'AJT77 Basic' && course !== 'AJT77 Pro')) {
-        return sendError(res, 'VALIDATION_ERROR', 'Invalid course selection. Must be AJT77 Basic or AJT77 Pro.', 422, {
+      const courses = db.listCourses();
+      const matchedCourse = courses.find((c) => c.name === course || c.slug === course || c.id === course);
+      if (!course || !matchedCourse) {
+        return sendError(res, 'VALIDATION_ERROR', 'Invalid course selection.', 422, {
           field: 'course',
-          allowed: ['AJT77 Basic', 'AJT77 Pro'],
+          allowed: courses.map(c => c.name),
         });
       }
 
@@ -119,8 +121,8 @@ async function startServer() {
         return sendError(res, 'VALIDATION_ERROR', 'Please provide a valid 10-digit mobile number.', 422, { field: 'customerPhone' });
       }
 
-      // Exact pricing rules
-      const amountInINR = course === 'AJT77 Basic' ? 6000 : 10000;
+      // Dynamic course lookup from database (backend authority)
+      const amountInINR = matchedCourse.price;
       const amountInPaise = amountInINR * 100; // Razorpay amounts are in paise
 
       // Generate unique internal order ID
@@ -668,6 +670,12 @@ async function startServer() {
     }
   });
 
+  // Public Full Website Content Endpoint (Dynamic Single Source of Truth)
+  app.get('/api/site-content', (_req, res) => {
+    const content = db.getSiteContent();
+    return sendSuccess(res, content, 'Website content retrieved');
+  });
+
   // ==========================================
   // SECURE ADMIN ENDPOINTS
   // ==========================================
@@ -1206,9 +1214,81 @@ async function startServer() {
     return sendSuccess(res, updated, 'Site settings updated');
   });
 
+  // Website CMS Content Admin
+  app.get('/api/admin/site-content', requireAdminAuth, (_req, res) => {
+    const content = db.getSiteContent();
+    return sendSuccess(res, content, 'Site content retrieved for editing');
+  });
+
+  app.patch('/api/admin/site-content', requireAdminAuth, (req: AuthenticatedRequest, res) => {
+    const updated = db.updateSiteContent(req.body);
+    db.logAudit({
+      admin_user_id: req.admin?.email || 'admin',
+      action: 'SITE_CONTENT_UPDATED',
+      entity_type: 'SITE_CONTENT',
+      entity_id: 'global',
+      metadata: { keys_updated: Object.keys(req.body) },
+      ip_address: req.ip || 'admin',
+      user_agent: req.headers['user-agent'] || 'admin',
+    });
+    return sendSuccess(res, updated, 'Website content successfully updated and live');
+  });
+
+  // Universal Media / Image Upload Admin
+  app.post('/api/admin/upload-image', requireAdminAuth, (req: AuthenticatedRequest, res) => {
+    try {
+      const { dataUrl, imageBase64, filename } = req.body;
+      const rawData = dataUrl || imageBase64;
+      if (!rawData || typeof rawData !== 'string') {
+        return sendError(res, 'INVALID_PAYLOAD', 'Please provide image dataUrl or imageBase64 string', 400);
+      }
+
+      const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const buffer = matches && matches[2]
+        ? Buffer.from(matches[2], 'base64')
+        : Buffer.from(rawData.replace(/^data:[^;]+;base64,/, ''), 'base64');
+
+      if (!buffer || buffer.length === 0) {
+        return sendError(res, 'INVALID_IMAGE_DATA', 'Invalid image data buffer', 400);
+      }
+
+      const publicDir = path.join(process.cwd(), 'public');
+      const uploadsDir = path.join(publicDir, 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const safeName = (filename || `img_${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const cleanFileName = `${safeName}.png`;
+      const targetPath = path.join(uploadsDir, cleanFileName);
+      fs.writeFileSync(targetPath, buffer);
+
+      const distUploadsDir = path.join(process.cwd(), 'dist', 'uploads');
+      if (fs.existsSync(path.join(process.cwd(), 'dist'))) {
+        if (!fs.existsSync(distUploadsDir)) {
+          fs.mkdirSync(distUploadsDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(distUploadsDir, cleanFileName), buffer);
+      }
+
+      const publicUrl = `/uploads/${cleanFileName}`;
+      return sendSuccess(res, {
+        url: publicUrl,
+        filename: cleanFileName,
+        size_bytes: buffer.length,
+      }, 'Image uploaded successfully');
+    } catch (err: any) {
+      console.error('Image upload failed:', err);
+      return sendError(res, 'IMAGE_UPLOAD_FAILED', err.message || 'Image upload failed', 500);
+    }
+  });
+
   // ==========================================
   // VITE DEV & PRODUCTION STATIC ASSETS
   // ==========================================
+
+  const publicPath = path.join(process.cwd(), 'public');
+  app.use(express.static(publicPath));
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
